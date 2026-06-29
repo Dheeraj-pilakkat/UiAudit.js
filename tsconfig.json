@@ -7,9 +7,11 @@
     "esModuleInterop": true,
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "commonjs",
+
+    "module": "Node16",
+    "moduleResolution": "node16",
     "target": "es2020",
-    "types": [],
+    "types": ["node"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -19,6 +21,7 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
+    "emitDeclarationOnly": false,
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,

@@ -1,1 +1,22 @@
-console.log("UIAufit is working");
+/**
+ * UIAudit — Public programmatic API
+ *
+ * This is what the VS Code extension (and any other programmatic consumer)
+ * will import. The CLI (src/cli.ts) uses this same API under the hood.
+ *
+ * Usage:
+ *   import { runAudit } from 'uiaudit';
+ *   const report = runAudit('./src/components', { types: ['accessibility', 'performance'] });
+ */
+
+export { runAudit } from './auditor.js';
+
+export type {
+  AuditReport,
+  AuditResult,
+  AuditOptions,
+  AuditCategory,
+  Issue,
+  IssueImpact,
+  IssueStatus,
+} from './types.js';
