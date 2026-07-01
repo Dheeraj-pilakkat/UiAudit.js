@@ -264,6 +264,34 @@ export function auditAccessibility(parsedFiles: ParsedFile[]): Issue[] {
           hasNonEmptyStringAttr('alt') ||
           hasVisibleTextName();
 
+        const getAccessibleNameText = (): string => {
+          const ariaLabel = getStringValue('aria-label');
+          if (ariaLabel) return ariaLabel;
+
+          const title = getStringValue('title');
+          if (title) return title;
+
+          const alt = getStringValue('alt');
+          if (alt) return alt;
+
+          const parent = path.parentPath?.node as any;
+          if (!parent || parent.type !== 'JSXElement') return '';
+
+          const getText = (node: any): string => {
+            if (!node) return '';
+            if (node.type === 'JSXText') return node.value;
+            if (node.type === 'JSXExpressionContainer') {
+              return node.expression?.type === 'StringLiteral' ? node.expression.value : '';
+            }
+            if (node.type === 'JSXElement') {
+              return (node.children || []).map(getText).join('');
+            }
+            return '';
+          };
+
+          return (parent.children || []).map(getText).join('').trim();
+        };
+
         const hasKeyboardSupport = (): boolean =>
           hasAttr('onKeyDown') || hasAttr('onKeyUp') || hasAttr('onKeyPress');
 
@@ -498,6 +526,31 @@ export function auditAccessibility(parsedFiles: ParsedFile[]): Issue[] {
               line: node.loc?.start.line,
             });
           }
+
+          // ── Check 4b: Link has generic text ───────────────────────────
+          //
+          // WCAG 2.1 SC 2.4.4 (Level A)
+          // Link text should be meaningful and describe the link's purpose
+          // without needing surrounding context.
+          const linkText = getAccessibleNameText().toLowerCase();
+          const genericLinkPatterns = /^(click here|read more|more|learn more|here|link)$/;
+          if (genericLinkPatterns.test(linkText)) {
+            issues.push({
+              id: 'link-has-meaningful-text',
+              category: 'accessibility',
+              title: 'Link has generic or uninformative text',
+              description:
+                'Links should have descriptive text that indicates their purpose without needing to read surrounding content. Generic text like \"Click here\" or \"Read more\" is unhelpful for screen reader users. Violates WCAG 2.1 SC 2.4.4 (Level A).',
+              impact: 'major',
+              status: 'fail',
+              suggestion:
+                'Rewrite the link text to be descriptive, or use aria-label if a visible label is not possible.\n<a href="/products/new-arrivals">View our new arrivals</a>\nor\n<a href="/products/new-arrivals" aria-label="View our new arrivals"><IconArrow /></a>',
+              codeSnippet: '<a href="/article">Read more</a>',
+              fixSnippet:  '<a href="/article">Read the full article about accessibility</a>',
+              file: filePath,
+              line: node.loc?.start.line,
+            });
+          }
         }
 
         // ── Check 5: <input> with no accessible label ─────────────────────
@@ -595,6 +648,30 @@ export function auditAccessibility(parsedFiles: ParsedFile[]): Issue[] {
                 'Option A — Link to a visible label (preferred):\n  <label htmlFor="username">Username</label>\n  <input id="username" type="text" />\n\nOption B — Inline label for space-constrained UI:\n  <input type="search" aria-label="Search products" />\n\nOption C — Label from another element:\n  <h2 id="results-heading">Search results</h2>\n  <input aria-labelledby="results-heading" />',
               codeSnippet: `<input type="${inputType || 'text'}" />`,
               fixSnippet:  `<input type="${inputType || 'text'}" aria-label="Describe this field" />`,
+              file: filePath,
+              line: node.loc?.start.line,
+            });
+          }
+
+          // ── Check 5b: Placeholder text not replacing label ────────────
+          //
+          // WCAG 2.1 SC 3.3.2 (Level A)
+          // Placeholder text is not a substitute for a label. It disappears when
+          // the user starts typing and is not announced by all screen readers.
+          const hasPlaceholder = hasAttr('placeholder');
+          if (hasPlaceholder && !hasId && !hasAriaLabel && !hasAriaLabelledBy) {
+            issues.push({
+              id: 'placeholder-not-replacing-label',
+              category: 'accessibility',
+              title: `<input${inputType ? ` type="${inputType}"` : ''}> uses placeholder as a label`,
+              description:
+                'Placeholder text is present but there is no explicit accessible label (via <label>, aria-label, or aria-labelledby). Placeholder text disappears on input and is not a robust accessible name. Violates WCAG 2.1 SC 3.3.2 (Level A).',
+              impact: 'major',
+              status: 'fail',
+              suggestion:
+                'Always provide an explicit label for form inputs. Use placeholder text only as a supplementary hint.\n<label htmlFor="search">Search</label>\n<input id="search" type="search" placeholder="Enter keywords..." />',
+              codeSnippet: `<input type="${inputType || 'text'}" placeholder="Search..." />`,
+              fixSnippet:  `<label htmlFor="${inputType || 'text'}">Search</label>\n<input id="${inputType || 'text'}" type="${inputType || 'text'}" placeholder="Search..." />`,
               file: filePath,
               line: node.loc?.start.line,
             });
