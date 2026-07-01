@@ -1,0 +1,30 @@
+# Development files
+src/
+tsconfig.json
+*.ts
+*.tsx
+
+# Testing & build tools
+node_modules/
+.git/
+.gitignore
+.github/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+.env
+.env.local
