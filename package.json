@@ -1,6 +1,6 @@
 {
   "name": "uiaudit.js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A CLI and VS Code extension to audit React/Next.js Components",
   "keywords": [
     "react",
