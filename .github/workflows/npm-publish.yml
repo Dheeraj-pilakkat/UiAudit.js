@@ -1,34 +1,69 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-
-name: Node.js Package
+name: CI / Publish
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
   pull_request:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch: {}
 
 jobs:
-  build:
+  validate:
+    name: Validate Build & Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  publish-npm:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm publish
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run build
+        run: npm run build
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Verify package metadata
+        run: |
+          npm pkg get name version main license
+          node -e "const pkg=require('./package.json'); if (!pkg.name||!pkg.version) throw new Error('package.json must include name and version');"
+
+  publish:
+    name: Publish to npm
+    needs: validate
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build
+
+      - name: Publish package to npm
+        run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Confirm published version
+        run: npm view $(node -p "require('./package.json').name") version

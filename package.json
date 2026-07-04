@@ -1,32 +1,58 @@
 {
   "name": "uiaudit.js",
   "version": "1.0.5",
-  "description": "A CLI and VS Code extension to audit React/Next.js Components",
+  "description": "A CLI and VS Code extension to audit React and Next.js components for accessibility, performance, and SEO issues.",
   "keywords": [
     "react",
     "next.js",
     "accessibility",
     "performance",
     "seo",
-    "audit"
+    "audit",
+    "static-analysis",
+    "typescript"
   ],
   "license": "MIT",
   "author": "Dheeraj p",
   "type": "module",
   "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc",
-    "dev": "ts-node src/index.ts",
-    "start": "node dist/index.js"
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./cli": "./dist/cli.js"
   },
   "bin": {
     "uiaudit": "./dist/cli.js"
   },
   "files": [
     "dist",
-    "LICENSE",
-    "README.md"
+    "README.md",
+    "LICENSE.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dheeraj-pilakkat/UiAudit.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Dheeraj-pilakkat/UiAudit.js/issues"
+  },
+  "homepage": "https://github.com/Dheeraj-pilakkat/UiAudit.js#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run build && npm test",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run build"
+  },
   "dependencies": {
     "@babel/parser": "^7.29.7",
     "@babel/traverse": "^7.29.7",
@@ -39,6 +65,7 @@
     "@types/babel__traverse": "^7.28.0",
     "@types/node": "^20.19.43",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^1.5.0"
   }
 }
