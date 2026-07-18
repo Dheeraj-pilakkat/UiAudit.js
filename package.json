@@ -1,5 +1,5 @@
 {
-  "name": "uiaudit.js",
+  "name": "@dheeraj-pilakkat/uiaudit.js",
   "version": "2.0.0",
   "description": "A CLI and VS Code extension to audit React and Next.js components for accessibility, performance, and SEO issues.",
   "keywords": [
@@ -26,6 +26,9 @@
   },
   "bin": {
     "uiaudit": "dist/cli.js"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "files": [
     "dist",
