@@ -15,6 +15,8 @@ import * as path   from 'path';
 
 import { runAudit }        from './auditor.js';
 import { renderTerminal }  from './reporter/terminal.js';
+import { detectTechStack } from './detector.js';
+import { renderDetectorTerminal } from './reporter/detector-terminal.js';
 import type { AuditCategory } from './types.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -88,9 +90,18 @@ program
     runAuditCommand(target, ['accessibility'], opts.output, opts.file);
   });
 
+program
+  .command('detect <url>')
+  .description('Detect the technology stack of a live website')
+  .option('-o, --output <format>', 'Output format: terminal or json', 'terminal')
+  .option('-f, --file <path>', 'Save JSON report to a file')
+  .action((url: string, opts: { output: string; file?: string }) => {
+    runDetectCommand(url, opts.output, opts.file);
+  });
+
 program.parse(process.argv);
 
-// ─── Shared action handler ────────────────────────────────────────────────────
+// ─── Shared action handlers ───────────────────────────────────────────────────
 
 function runAuditCommand(
   target: string,
@@ -135,6 +146,46 @@ function runAuditCommand(
 
   } catch (err: unknown) {
     spinner.fail(chalk.red(`Audit failed: ${(err as Error).message}`));
+    if (process.env.DEBUG) {
+      console.error('\n', err);
+    } else {
+      console.error(chalk.dim('  Run with DEBUG=1 for stack trace.'));
+    }
+    process.exit(1);
+  }
+}
+
+async function runDetectCommand(url: string, output: string, outputFile?: string): Promise<void> {
+  const spinner = ora({
+    text: `Analyzing tech stack for ${chalk.cyan(url)}...`,
+    color: 'cyan',
+  }).start();
+
+  try {
+    const result = await detectTechStack(url);
+
+    spinner.succeed(
+      chalk.green(
+        `Successfully analyzed ${chalk.cyan(result.url)}`
+      )
+    );
+
+    // Save JSON report to file if requested
+    if (outputFile) {
+      const resolvedPath = path.resolve(outputFile);
+      fs.writeFileSync(resolvedPath, JSON.stringify(result, null, 2), 'utf-8');
+      console.log(chalk.green(`\n  ✓ Report saved → ${resolvedPath}\n`));
+    }
+
+    if (output === 'json') {
+      console.log(JSON.stringify(result, null, 2));
+    } else {
+      renderDetectorTerminal(result);
+    }
+
+    process.exit(0);
+  } catch (err: unknown) {
+    spinner.fail(chalk.red(`Detection failed: ${(err as Error).message}`));
     if (process.env.DEBUG) {
       console.error('\n', err);
     } else {

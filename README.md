@@ -31,6 +31,7 @@ Unlike browser-driven auditing tools which require mounting components, running 
    - [Audit Commands](#audit-commands)
    - [Shorthands](#shorthand-commands)
    - [CLI Options](#cli-options)
+   - [Tech Stack Detection](#tech-stack-detection)
    - [CI/CD Integration](#cicd-integration)
 6. [Programmatic API (SDK)](#programmatic-api-sdk)
 7. [Scoring Methodology](#scoring-methodology)
@@ -45,6 +46,7 @@ Unlike browser-driven auditing tools which require mounting components, running 
 *   **♿ 50+ Accessibility Checks:** Detailed checkers mapped to WCAG 2.1 guidelines (Level A/AA/AAA), catching keyboard traps, labeling failures, semantic errors, and more.
 *   **📈 Performance Audits:** Identifies common React performance pitfalls like missing keys in lists, missing `useEffect` dependency arrays, and complex inline callbacks.
 *   **🔍 Search Optimization (SEO):** Flags unlabelled anchors, non-semantic HTML structures, and raw images that bypass Next.js optimization.
+*   **📡 Live Tech Stack Detection:** Discover frameworks, styling systems, tracking platforms, and hosting providers used on any live website URL.
 *   **🎨 Premium Terminal UI:** Outputs beautifully formatted summary reports with color-coded scoreboards, file locations, issue impact (Critical, Major, Minor), failing code snippets, and drop-in code fixes.
 *   **🤖 CI/CD Ready:** Returns exit code `1` if any **Critical** issues are found, letting you block commits or pipeline builds immediately.
 *   **📦 Programmatic SDK:** Fully typed public exports for embedding in IDE extensions, pre-commit hooks, or build tools.
@@ -58,13 +60,17 @@ The codebase is structured modularly to keep parsing, auditing, and reporting co
 ```mermaid
 graph TD
     CLI[src/cli.ts CLI] --> Auditor[src/auditor.ts runAudit]
+    CLI --> Detector[src/detector.ts detectTechStack]
     SDK[src/index.ts Programmatic API] --> Auditor
+    SDK --> Detector
+    Detector --> Fetcher[src/utils/fetch.ts fetchPage]
     Auditor --> Parser[src/parser/index.ts File Collector & Babel Parser]
     Parser --> Traverse[src/parser/traverse.ts Babel Traverse Interop]
     Auditor --> PerfAud[src/auditors/performance.ts]
     Auditor --> SEOMAud[src/auditors/seo.ts]
     Auditor --> A11yAud[src/auditors/accessibility.ts]
     Auditor --> Reporter[src/reporter/terminal.ts Terminal Renderer]
+    Detector --> DetReporter[src/reporter/detector-terminal.ts Terminal Renderer]
 ```
 
 ### Core Components
@@ -255,6 +261,25 @@ uiaudit audit ./src -f ./full-audit.json
 uiaudit audit ./src/pages --type accessibility
 ```
 
+### Tech Stack Detection
+
+Audit any live website URL to discover its active front-end frameworks, styling libraries, analytics tools, hosting providers, and utilities.
+
+```bash
+# Basic usage (prints a styled report to terminal)
+uiaudit detect https://react.dev
+
+# Save stack report to a JSON file
+uiaudit detect https://react.dev -f stack-report.json
+
+# Output as raw JSON to standard output
+uiaudit detect https://react.dev --output json
+```
+
+#### Privacy & Confidentiality
+> [!NOTE]
+> The `detect` command only fetches and parses public-facing elements (like HTML structure, script tag paths, and HTTP response headers) that any standard browser gets when visiting the page. It **never** accesses or processes any private source directories, database credentials, server configuration secrets, or personal user data (PII).
+
 ### CI/CD Integration
 
 UIAudit is designed to integrate seamlessly into your continuous integration pipeline. It returns a non-zero exit code (`1`) if any **Critical** issues are found, allowing you to fail builds or block commits.
@@ -409,6 +434,20 @@ Main entry point for running an audit.
 - `totalIssues`: Total issue count across all categories
 - `results`: Object with category-specific results
 - `issues`: Flat array of all issues found
+
+#### `detectTechStack(url: string): Promise<DetectionResult>`
+
+Retrieve the technology stack signature of a live site URL.
+
+**Parameters:**
+- `url` (string): The public web address to query (e.g., `'https://react.dev'`).
+
+**Returns:** A Promise that resolves to a `DetectionResult` object containing:
+- `url`: The final URL fetched (after following redirects).
+- `title`: The string content of the page's HTML `<title>` tag.
+- `statusCode`: The final HTTP status code.
+- `technologies`: An array of `TechMatch` objects, each with `name`, `category`, `confidence`, and `evidence`.
+- `headers`: A record containing the raw HTTP response headers returned by the server.
 
 ### Advanced Usage: Build Tool Integration
 
