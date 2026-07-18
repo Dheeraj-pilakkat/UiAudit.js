@@ -25,7 +25,7 @@
     "./cli": "./dist/cli.js"
   },
   "bin": {
-    "uiaudit": "./dist/cli.js"
+    "uiaudit": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -34,7 +34,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Dheeraj-pilakkat/UiAudit.js.git"
+    "url": "git+https://github.com/Dheeraj-pilakkat/UiAudit.js.git"
   },
   "bugs": {
     "url": "https://github.com/Dheeraj-pilakkat/UiAudit.js/issues"
