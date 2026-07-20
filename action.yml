@@ -36,7 +36,7 @@ runs:
     - name: Run UiAudit
       shell: bash
       run: |
-        CMD="npx --yes @dheeraj-pilakkat/uiaudit.js audit ${{ inputs.target }} --type ${{ inputs.categories }} --fail-on ${{ inputs.fail-on }}"
+        CMD="npx --yes @mr-crypt0/uiaudit.js audit ${{ inputs.target }} --type ${{ inputs.categories }} --fail-on ${{ inputs.fail-on }}"
         if [ -n "${{ inputs.min-score }}" ]; then
           CMD="$CMD --min-score ${{ inputs.min-score }}"
         fi

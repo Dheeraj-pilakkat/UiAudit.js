@@ -1,5 +1,5 @@
 {
-  "name": "@dheeraj-pilakkat/uiaudit.js",
+  "name": "@mr-crypt0/uiaudit.js",
   "version": "2.2.0",
   "description": "A CLI and VS Code extension to audit React and Next.js components for accessibility, performance, and SEO issues.",
   "keywords": [

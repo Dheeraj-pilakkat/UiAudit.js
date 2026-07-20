@@ -695,7 +695,7 @@ UIAudit is designed to be fast:
 ### v2.0.0 (Current)
 - **Live Tech Stack Detection:** Added a `detect <url>` CLI command to query and identify framework, styling, tracking, and hosting dependencies of live websites.
 - **Output Report Saving:** Added `-f, --file` flag to save the tech stack detection outputs directly to a JSON file.
-- **GitHub Packages Integration:** Added support for scoped publishing to GitHub Packages (`@dheeraj-pilakkat/uiaudit.js`).
+- **GitHub Packages Integration:** Added support for scoped publishing (`@mr-crypt0/uiaudit.js`).
 - **Programmatic SDK Detections:** Exposed `detectTechStack` function and related types in the programmatic library entrypoint.
 
 ### v1.0.0
