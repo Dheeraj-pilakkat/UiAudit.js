@@ -4,6 +4,7 @@
   "description": "Inline accessibility, SEO, and performance auditing with instant suggestions for React and Next.js components.",
   "version": "2.1.0",
   "publisher": "dheeraj-pilakkat",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.80.0"
   },

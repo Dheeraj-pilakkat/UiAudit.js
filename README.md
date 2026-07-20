@@ -1,8 +1,14 @@
-# UIAudit.js 🔍
+<p align="center">
+  <img src="assets/logo.png" width="160" alt="UIAudit.js Logo" />
+</p>
 
-[![npm version](https://img.shields.io/npm/v/uiaudit.js.svg?style=flat-square)](https://www.npmjs.com/package/uiaudit.js)
-[![npm downloads](https://img.shields.io/npm/dm/uiaudit.js.svg?style=flat-square)](https://www.npmjs.com/package/uiaudit.js)
-[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<h1 align="center">UIAudit.js 🔍</h1>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/uiaudit.js"><img src="https://img.shields.io/npm/v/uiaudit.js.svg?style=flat-square" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/uiaudit.js"><img src="https://img.shields.io/npm/dm/uiaudit.js.svg?style=flat-square" alt="npm downloads" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" /></a>
+</p>
 
 `UIAudit.js` is a lightweight, high-performance, **AST-based static analysis engine** and CLI tool designed to audit React and Next.js components for Accessibility (a11y), Performance, and SEO issues. 
 

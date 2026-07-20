@@ -1,4 +1,8 @@
-# UiAudit — VS Code Extension 🔍
+<p align="center">
+  <img src="icon.png" width="128" alt="UIAudit.js Logo" />
+</p>
+
+<h1 align="center">UIAudit.js — VS Code Extension 🔍</h1>
 
 Real-time inline auditing of React and Next.js components for Accessibility (a11y), Performance anti-patterns, and SEO issues.
 
