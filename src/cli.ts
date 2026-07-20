@@ -52,11 +52,24 @@ program
     '-f, --file <path>',
     'Save JSON report to a file (also prints to terminal by default)'
   )
-  .action((target: string, opts: { type: string; output: string; file?: string }) => {
+  .option(
+    '-c, --config <path>',
+    'Path to custom configuration file (e.g. uiaudit.config.json)'
+  )
+  .option(
+    '--fail-on <impact>',
+    'Minimum issue impact level that triggers a non-zero exit code: critical, major, minor'
+  )
+  .option(
+    '--min-score <score>',
+    'Minimum overall score required to pass (0-100)'
+  )
+  .action((target: string, opts: { type: string; output: string; file?: string; config?: string; failOn?: string; minScore?: string }) => {
     const types = parseTypes(opts.type);
     if (!types) process.exit(1);
 
-    runAuditCommand(target, types, opts.output, opts.file);
+    const minScoreNum = opts.minScore !== undefined ? parseInt(opts.minScore, 10) : undefined;
+    runAuditCommand(target, types, opts.output, opts.file, opts.config, opts.failOn, minScoreNum);
   });
 
 // ─── Shorthand commands ───────────────────────────────────────────────────────
@@ -68,8 +81,12 @@ program
   .description('Shorthand: run performance audit only')
   .option('-o, --output <format>', 'Output format: terminal or json', 'terminal')
   .option('-f, --file <path>', 'Save JSON report to a file')
-  .action((target: string, opts: { output: string; file?: string }) => {
-    runAuditCommand(target, ['performance'], opts.output, opts.file);
+  .option('-c, --config <path>', 'Path to custom configuration file')
+  .option('--fail-on <impact>', 'Minimum issue impact level that triggers exit code 1')
+  .option('--min-score <score>', 'Minimum score required to pass')
+  .action((target: string, opts: { output: string; file?: string; config?: string; failOn?: string; minScore?: string }) => {
+    const minScoreNum = opts.minScore !== undefined ? parseInt(opts.minScore, 10) : undefined;
+    runAuditCommand(target, ['performance'], opts.output, opts.file, opts.config, opts.failOn, minScoreNum);
   });
 
 program
@@ -77,8 +94,12 @@ program
   .description('Shorthand: run SEO audit only')
   .option('-o, --output <format>', 'Output format: terminal or json', 'terminal')
   .option('-f, --file <path>', 'Save JSON report to a file')
-  .action((target: string, opts: { output: string; file?: string }) => {
-    runAuditCommand(target, ['seo'], opts.output, opts.file);
+  .option('-c, --config <path>', 'Path to custom configuration file')
+  .option('--fail-on <impact>', 'Minimum issue impact level that triggers exit code 1')
+  .option('--min-score <score>', 'Minimum score required to pass')
+  .action((target: string, opts: { output: string; file?: string; config?: string; failOn?: string; minScore?: string }) => {
+    const minScoreNum = opts.minScore !== undefined ? parseInt(opts.minScore, 10) : undefined;
+    runAuditCommand(target, ['seo'], opts.output, opts.file, opts.config, opts.failOn, minScoreNum);
   });
 
 program
@@ -86,8 +107,12 @@ program
   .description('Shorthand: run accessibility audit only')
   .option('-o, --output <format>', 'Output format: terminal or json', 'terminal')
   .option('-f, --file <path>', 'Save JSON report to a file')
-  .action((target: string, opts: { output: string; file?: string }) => {
-    runAuditCommand(target, ['accessibility'], opts.output, opts.file);
+  .option('-c, --config <path>', 'Path to custom configuration file')
+  .option('--fail-on <impact>', 'Minimum issue impact level that triggers exit code 1')
+  .option('--min-score <score>', 'Minimum score required to pass')
+  .action((target: string, opts: { output: string; file?: string; config?: string; failOn?: string; minScore?: string }) => {
+    const minScoreNum = opts.minScore !== undefined ? parseInt(opts.minScore, 10) : undefined;
+    runAuditCommand(target, ['accessibility'], opts.output, opts.file, opts.config, opts.failOn, minScoreNum);
   });
 
 program
@@ -107,7 +132,10 @@ function runAuditCommand(
   target: string,
   types: AuditCategory[],
   output: string,
-  outputFile?: string
+  outputFile?: string,
+  configPath?: string,
+  failOnOpt?: string,
+  minScoreOpt?: number
 ): void {
   const spinner = ora({
     text: `Scanning ${chalk.cyan(target)}...`,
@@ -115,7 +143,7 @@ function runAuditCommand(
   }).start();
 
   try {
-    const report = runAudit(target, { types });
+    const report = runAudit(target, { types, configPath });
 
     spinner.succeed(
       chalk.green(
@@ -137,12 +165,33 @@ function runAuditCommand(
       renderTerminal(report);
     }
 
-    // Exit code 1 if any critical issues — makes this useful in CI pipelines.
-    // Example: `uiaudit audit ./src && git push` will block the push if crits exist.
-    const hasCritical = Object.values(report.results).some(
-      (r) => r && r.counts.critical > 0
-    );
-    process.exit(hasCritical ? 1 : 0);
+    // Determine failOn threshold: option overrides config, default is 'critical'
+    const failOnThreshold = (failOnOpt || report.config?.failOn || 'critical').toLowerCase();
+    const minScoreThreshold = minScoreOpt !== undefined ? minScoreOpt : report.config?.minScore;
+
+    let shouldFail = false;
+
+    // Evaluate issue counts against failOn threshold
+    const totalCritical = Object.values(report.results).reduce((s, r) => s + (r?.counts.critical || 0), 0);
+    const totalMajor    = Object.values(report.results).reduce((s, r) => s + (r?.counts.major || 0), 0);
+    const totalMinor    = Object.values(report.results).reduce((s, r) => s + (r?.counts.minor || 0), 0);
+
+    if (failOnThreshold === 'minor') {
+      shouldFail = totalCritical > 0 || totalMajor > 0 || totalMinor > 0;
+    } else if (failOnThreshold === 'major') {
+      shouldFail = totalCritical > 0 || totalMajor > 0;
+    } else {
+      // Default / critical
+      shouldFail = totalCritical > 0;
+    }
+
+    // Evaluate score threshold
+    if (minScoreThreshold !== undefined && report.overallScore < minScoreThreshold) {
+      console.error(chalk.red(`\n  ✖ Overall score ${report.overallScore} is below minimum required score of ${minScoreThreshold}\n`));
+      shouldFail = true;
+    }
+
+    process.exit(shouldFail ? 1 : 0);
 
   } catch (err: unknown) {
     spinner.fail(chalk.red(`Audit failed: ${(err as Error).message}`));

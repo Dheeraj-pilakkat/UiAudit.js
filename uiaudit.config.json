@@ -1,0 +1,22 @@
+{
+  "categories": [
+    "accessibility",
+    "performance",
+    "seo"
+  ],
+  "ignore": [
+    "node_modules/**",
+    "dist/**",
+    ".next/**",
+    "build/**"
+  ],
+  "rules": {
+    "img-missing-alt": "critical",
+    "img-missing-alt-a11y": "critical",
+    "missing-key-prop": "major",
+    "useeffect-no-deps": "major",
+    "console-in-component": "minor"
+  },
+  "failOn": "critical",
+  "minScore": 80
+}

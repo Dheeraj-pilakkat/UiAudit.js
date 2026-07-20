@@ -34,18 +34,33 @@ export interface AuditResult {
   };
 }
 
-// ─── The full report returned by runAudit() ──────────────────────────────────
+// ─── Configuration Types ───────────────────────────────────────────────────
 
-export interface AuditReport {
-  target: string;           // The path that was audited
-  timestamp: string;        // ISO 8601
-  overallScore: number;     // Weighted average of category scores
-  totalFiles: number;       // How many .tsx/.ts/.jsx/.js files were scanned
-  results: Partial<Record<AuditCategory, AuditResult>>;
+export interface UiAuditConfig {
+  categories?: AuditCategory[] | undefined;
+  ignore?: string[] | undefined;
+  rules?: Record<string, 'off' | IssueImpact> | undefined;
+  failOn?: IssueImpact | undefined;
+  minScore?: number | undefined;
 }
 
 // ─── Options passed in from CLI or programmatic API ─────────────────────────
 
 export interface AuditOptions {
   types: AuditCategory[];
+  configPath?: string | undefined;
+  config?: UiAuditConfig | undefined;
+  failOn?: IssueImpact | undefined;
+  minScore?: number | undefined;
+}
+
+// ─── The full report returned by runAudit() ──────────────────────────────────
+
+export interface AuditReport {
+  target: string;           // The path that was audited
+  timestamp: string;        // ISO 8601
+  overallScore: number;     // Weighted average of category scores
+  totalFiles: number;       // How many .tsx/.ts/.jsx/.js files scanned
+  config?: UiAuditConfig | undefined;   // Applied configuration
+  results: Partial<Record<AuditCategory, AuditResult>>;
 }

@@ -1,0 +1,87 @@
+{
+  "name": "uiaudit-js",
+  "displayName": "UIAudit.js",
+  "description": "Inline accessibility, SEO, and performance auditing with instant suggestions for React and Next.js components.",
+  "version": "1.0.0",
+  "publisher": "dheeraj-pilakkat",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:uiaudit.runAudit",
+    "onCommand:uiaudit.scanWorkspace",
+    "onCommand:uiaudit.clearDiagnostics",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "uiaudit.runAudit",
+        "title": "UIAudit.js: Scan Active File",
+        "category": "UIAudit.js"
+      },
+      {
+        "command": "uiaudit.scanWorkspace",
+        "title": "UIAudit.js: Scan Entire Workspace",
+        "category": "UIAudit.js"
+      },
+      {
+        "command": "uiaudit.clearDiagnostics",
+        "title": "UIAudit.js: Clear Diagnostics",
+        "category": "UIAudit.js"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "UIAudit.js Configuration",
+      "properties": {
+        "uiaudit.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time inline UI auditing on document save and open."
+        },
+        "uiaudit.runOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically run UiAudit when a React or Next.js file is saved."
+        },
+        "uiaudit.categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "accessibility",
+            "performance",
+            "seo"
+          ],
+          "description": "Active audit categories."
+        }
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dheeraj-pilakkat/UiAudit.js"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "npx --yes esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --format=cjs",
+    "package": "vsce package",
+    "watch": "npx --yes esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --target=node18 --external:vscode --format=cjs --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.9.3"
+  }
+}

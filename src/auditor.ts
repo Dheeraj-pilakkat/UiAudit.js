@@ -2,6 +2,7 @@ import { collectFiles, parseFile, type ParsedFile } from './parser/index.js';
 import { auditPerformance }   from './auditors/performance.js';
 import { auditSEO }           from './auditors/seo.js';
 import { auditAccessibility } from './auditors/accessibility.js';
+import { loadConfig, shouldIgnoreFile, applyConfigToIssues } from './config.js';
 import type {
   AuditCategory,
   AuditOptions,
@@ -26,21 +27,28 @@ const SCORE_DEDUCTIONS: Record<IssueImpact, number> = {
 
 /**
  * The single entry point for the entire audit engine.
- * Called by both the CLI (src/cli.ts) and the future VS Code extension (src/index.ts).
+ * Called by both the CLI (src/cli.ts) and the VS Code extension.
  *
  * @param target  A file path or directory path to audit.
  * @param options Which categories to run and any other options.
  * @returns       A complete AuditReport with scores, issues, and fix suggestions.
  */
-export function runAudit(target: string, options: AuditOptions): AuditReport {
+export function runAudit(target: string, options: AuditOptions = { types: ['performance', 'seo', 'accessibility'] }): AuditReport {
+  // ── Step 0: Load local configuration ─────────────────────────────────────
+  const config = options.config ?? loadConfig(options.configPath, target);
+  const categoriesToRun = options.types.length > 0 ? options.types : (config.categories ?? ['performance', 'seo', 'accessibility']);
+
   // ── Step 1: Collect and parse files ──────────────────────────────────────
-  const filePaths = collectFiles(target);
+  const rawFilePaths = collectFiles(target);
+
+  // Apply config ignore rules
+  const filePaths = rawFilePaths.filter((fp) => !shouldIgnoreFile(fp, config.ignore));
 
   if (filePaths.length === 0) {
     throw new Error(
       `No supported files found at "${target}".\n` +
       `UIAudit supports: .tsx, .ts, .jsx, .js\n` +
-      `Make sure the path exists and is not inside node_modules.`
+      `Make sure the path exists and is not inside node_modules or ignored in configuration.`
     );
   }
 
@@ -57,9 +65,10 @@ export function runAudit(target: string, options: AuditOptions): AuditReport {
 
   const results: Partial<Record<AuditCategory, AuditResult>> = {};
 
-  for (const category of options.types) {
-    const issues = RUNNERS[category](parsedFiles);
-    results[category] = buildResult(category, issues);
+  for (const category of categoriesToRun) {
+    const rawIssues = RUNNERS[category](parsedFiles);
+    const configuredIssues = applyConfigToIssues(rawIssues, config.rules);
+    results[category] = buildResult(category, configuredIssues);
   }
 
   // ── Step 3: Compute overall score ────────────────────────────────────────
@@ -76,6 +85,7 @@ export function runAudit(target: string, options: AuditOptions): AuditReport {
     timestamp: new Date().toISOString(),
     overallScore,
     totalFiles: parsedFiles.length,
+    config,
     results,
   };
 }

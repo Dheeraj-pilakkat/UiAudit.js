@@ -350,14 +350,86 @@ npx husky install
 npx husky add .husky/pre-commit "npx uiaudit audit ./src --type accessibility"
 ```
 
-#### Exit Code Behavior
+#### Exit Code & Fail Criteria
 
-- **Exit Code 0:** No critical issues found
-- **Exit Code 1:** One or more critical issues found (fails CI)
+You can customize the pass/fail gate criteria using `--fail-on` and `--min-score`:
+
+- **`--fail-on <critical|major|minor>`**: Set the minimum issue severity that causes a non-zero exit code (default: `critical`).
+- **`--min-score <0-100>`**: Require a minimum overall score. Exits with code `1` if overall score drops below this threshold.
 
 ```bash
-# Will exit with code 1 if critical issues exist
-uiaudit audit ./src
+# Fail build if score is under 85 or if any major or critical issue exists
+uiaudit audit ./src --fail-on major --min-score 85
+```
+
+---
+
+## Local Configuration File (`uiaudit.config.json`)
+
+UiAudit automatically looks for a configuration file in your project root (`uiaudit.config.json` or `.uiauditrc`). You can also specify a custom path with `-c, --config <path>`.
+
+```json
+{
+  "categories": ["accessibility", "performance", "seo"],
+  "ignore": [
+    "node_modules/**",
+    "dist/**",
+    ".next/**",
+    "build/**"
+  ],
+  "rules": {
+    "img-missing-alt": "critical",
+    "missing-key-prop": "major",
+    "console-in-component": "off"
+  },
+  "failOn": "critical",
+  "minScore": 80
+}
+```
+
+---
+
+## GitHub Action Integration
+
+UiAudit can be used directly as a native GitHub Action in your workflows:
+
+```yaml
+name: UI Audit Gate
+
+on: [push, pull_request]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run UiAudit Gate
+        uses: Dheeraj-pilakkat/UiAudit.js@v2
+        with:
+          target: './src'
+          categories: 'performance,seo,accessibility'
+          fail-on: 'critical'
+          min-score: 80
+```
+
+---
+
+## VS Code Extension
+
+UiAudit provides a real-time VS Code extension located in [`vscode-extension/`](file:///run/media/onyx/New%20Volume/uiaudit/vscode-extension).
+
+### Features
+- **Inline Diagnostics:** Underlines accessibility, performance, and SEO issues in real-time as you type or save `.tsx`, `.jsx`, `.ts`, and `.js` files.
+- **Quick Fixes:** Instant code action suggestions to remediate issues.
+- **Severity Mapping:**
+  - Critical → 🔴 Red Error
+  - Major → 🟡 Yellow Warning
+  - Minor → 🔵 Blue Info
+
+### Extension Commands
+- `UiAudit: Scan Active File`
+- `UiAudit: Clear Diagnostics`
+
 
 # Check exit code
 echo $?  # 0 = success, 1 = critical issues found

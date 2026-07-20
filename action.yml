@@ -1,0 +1,47 @@
+name: 'UiAudit.js'
+description: 'Audit React and Next.js components for Accessibility, SEO, and Performance violations.'
+author: 'Dheeraj p'
+branding:
+  icon: 'check-circle'
+  color: 'blue'
+
+inputs:
+  target:
+    description: 'Target path or directory to scan'
+    required: false
+    default: './src'
+  categories:
+    description: 'Comma-separated audit categories: performance, seo, accessibility'
+    required: false
+    default: 'performance,seo,accessibility'
+  fail-on:
+    description: 'Minimum issue impact level that triggers action failure: critical, major, minor'
+    required: false
+    default: 'critical'
+  min-score:
+    description: 'Minimum overall score (0-100) required to pass'
+    required: false
+  config-file:
+    description: 'Path to custom uiaudit configuration file'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run UiAudit
+      shell: bash
+      run: |
+        CMD="npx --yes @dheeraj-pilakkat/uiaudit.js audit ${{ inputs.target }} --type ${{ inputs.categories }} --fail-on ${{ inputs.fail-on }}"
+        if [ -n "${{ inputs.min-score }}" ]; then
+          CMD="$CMD --min-score ${{ inputs.min-score }}"
+        fi
+        if [ -n "${{ inputs.config-file }}" ]; then
+          CMD="$CMD --config ${{ inputs.config-file }}"
+        fi
+        echo "Running: $CMD"
+        $CMD

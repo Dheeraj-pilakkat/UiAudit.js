@@ -11,6 +11,7 @@
 
 export { runAudit } from './auditor.js';
 export { detectTechStack, type TechMatch, type DetectionResult } from './detector.js';
+export { loadConfig, findConfigFile, shouldIgnoreFile, applyConfigToIssues } from './config.js';
 
 export type {
   AuditReport,
@@ -20,4 +21,5 @@ export type {
   Issue,
   IssueImpact,
   IssueStatus,
+  UiAuditConfig,
 } from './types.js';
