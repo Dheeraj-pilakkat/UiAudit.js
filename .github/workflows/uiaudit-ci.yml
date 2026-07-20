@@ -1,10 +1,10 @@
-name: UiAudit CI Gate
+# Demo GitHub Actions Workflow for UiAudit
+# Copy this file to .github/workflows/uiaudit-ci.yml in your own repository.
+# (Triggers are set to [] in this demo file so GitHub Actions does not run it on this repository itself)
 
-on:
-  push:
-    branches: [ main, master, develop ]
-  pull_request:
-    branches: [ main, master, develop ]
+name: UiAudit CI Gate Example
+
+on: [] # Disabled trigger for demo template
 
 jobs:
   audit:
@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install Dependencies
