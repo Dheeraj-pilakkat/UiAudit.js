@@ -2,7 +2,7 @@
   "name": "uiaudit-js",
   "displayName": "UIAudit.js",
   "description": "Inline accessibility, SEO, and performance auditing with instant suggestions for React and Next.js components.",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "publisher": "dheeraj-pilakkat",
   "engines": {
     "vscode": "^1.80.0"
