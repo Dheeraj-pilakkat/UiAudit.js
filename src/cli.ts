@@ -22,7 +22,7 @@ import type { AuditCategory } from './types.js';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ALL_CATEGORIES: AuditCategory[] = ['performance', 'seo', 'accessibility'];
-const VERSION = '1.0.0';
+const VERSION = '2.2.2';
 
 // ─── CLI setup ────────────────────────────────────────────────────────────────
 
