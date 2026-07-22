@@ -9,7 +9,7 @@ import type { Issue } from '../types.js';
 export function auditAccessibility(parsedFiles: ParsedFile[]): Issue[] {
   const issues: Issue[] = [];
 
-  for (const { ast, filePath } of parsedFiles) {
+  for (const { ast, filePath, isPage } of parsedFiles) {
     const declaredIds = new Set<string>();
     const headingLevels: number[] = [];
     let hasH1 = false;
@@ -2120,7 +2120,7 @@ export function auditAccessibility(parsedFiles: ParsedFile[]): Issue[] {
     // ── Check 28: Page missing <h1> element ────────────────────────────
     //
     // WCAG 2.1 SC 1.3.1 (Level A)
-    if (!hasH1) {
+    if (isPage && !hasH1) {
       issues.push({
         id: 'page-missing-h1',
         category: 'accessibility',

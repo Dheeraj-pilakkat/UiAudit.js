@@ -3,12 +3,15 @@ import * as path from 'path';
 import * as parser from '@babel/parser';
 import type { File } from '@babel/types';
 
+import { isPageFile } from '../utils/page.js';
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface ParsedFile {
   filePath: string;
   ast: File;
   source: string;
+  isPage: boolean;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -126,7 +129,8 @@ export function parseFile(filePath: string): ParsedFile | null {
         'importAssertions',
       ],
     });
-    return { filePath, ast, source };
+    const isPage = isPageFile(filePath, ast);
+    return { filePath, ast, source, isPage };
   } catch {
     // Silently skip files that fail to parse.
     return null;

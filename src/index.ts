@@ -12,6 +12,7 @@
 export { runAudit } from './auditor.js';
 export { detectTechStack, type TechMatch, type DetectionResult } from './detector.js';
 export { loadConfig, findConfigFile, shouldIgnoreFile, applyConfigToIssues } from './config.js';
+export { isPageFile } from './utils/page.js';
 
 export type {
   AuditReport,
